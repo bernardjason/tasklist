@@ -1,4 +1,4 @@
-@(title: String,loginForm:   play.api.data.Form[User],user:String)(content: Html)(implicit request: RequestHeader)
+@(title: String,loginForm:   play.api.data.Form[User],user:models.User)(content: Html)(implicit request: RequestHeader)
 @import helper._
 @import play.api.i18n.Messages.Implicits._
 
@@ -36,7 +36,7 @@
       </button>
       <a class="navbar-brand" href="/"> <img src="/assets/images/favicon.png" class="img-responsive" > </a>
 			@if(user != null) { 
-				<p class="navbar-text" style="color:yellow">hello @user
+				<p class="navbar-text" style="color:yellow">hello @user.nickname
 				</p>
 			}
 	@if(user == null) { 
@@ -50,17 +50,26 @@
     <div class="collapse navbar-collapse navbar-right" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
 
+ 		@if( user != null && user.role.getOrElse("") == "admin" ) {
+ 		<li><a href="/admin">admin</a></li>
+		}
+
   		<li class="active"><a href="/">Home</a></li>
 
   		<li><a href="#login" data-toggle="modal" data-target="#login">Login</a></li>
  		<li><a href="/logout">Logout</a></li>
-
 
       </ul>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
 </nav>
 
+	@if(request.flash.get("error")) {
+	<div class="alert alert-danger">
+        <h4>Error!</h4>
+        @request.flash.get("error")
+    </div>
+	}
 
     @content
 

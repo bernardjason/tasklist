@@ -160,13 +160,15 @@ function loadJavascript(){
 			$('#addTaskPost').modal('hide');
 		}
 	);
-	$('#week').val(getAdjustedWeek(0))
+	if ( $('#week').length > 0 ) {
+		$('#week').val(getAdjustedWeek(0))
 
-	loadTimeEntryData();
+		loadTimeEntryData();
 
-	@if( user == null ) {
-		$('#postTaskButton').prop('disabled', true);
-	} else {
-		$('#postTaskButton').prop('disabled', false);
+		@if( user == null ) {
+			$('#postTaskButton').prop('disabled', true);
+		} else {
+			$('#postTaskButton').prop('disabled', false);
+		}
 	}
 }

@@ -25,4 +25,8 @@ object Tasks extends ((Int, String, String) => Tasks) {
   }
 
   implicit val jsonReadWriteFormatTrait = Json.format[Tasks]
+  
+  
+  def apply(name:String,code:String):Tasks = Tasks(0,name,code)
+  def unapplyit(t: Tasks): Option[ (String,String)]  = Some(t.name,t.code)
 }

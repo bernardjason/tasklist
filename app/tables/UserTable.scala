@@ -15,7 +15,8 @@ trait UserTable {
     def user = column[String]("USER")
     def password = column[String]("PASSWORD")
     def nickname = column[String]("NICKNAME")
+    def role = column[Option[String]]("ROLE")
 
-    def * = (id, user, password, nickname) <> (User.tupled, User.unapply _)
+    def * = (id, user, password, nickname,role) <> (User.tupled, User.unapply _)
   }
 }

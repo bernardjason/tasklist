@@ -1,7 +1,7 @@
 # --- !Ups
 
 
-create table "USERS" ("ID" INTEGER PRIMARY KEY,"USER" VARCHAR NOT NULL,"PASSWORD" VARCHAR NOT NULL,"NICKNAME" VARCHAR NOT NULL);
+create table "USERS" ("ID" INTEGER PRIMARY KEY,"USER" VARCHAR NOT NULL,"PASSWORD" VARCHAR NOT NULL,"NICKNAME" VARCHAR NOT NULL,"ROLE" VARCHAR);
 
 create table "BLOGS" (ID INTEGER PRIMARY KEY,USERS_ID INTEGER NOT NULL, "USER" VARCHAR NOT NULL,"WHEN" TIMESTAMP NOT NULL, WHAT VARCHAR NOT NULL , FOREIGN KEY(USERS_ID) REFERENCES USERS(ID));
 
@@ -34,6 +34,7 @@ insert into "TASKS" ("ID","NAME","CODE") values (6,'HOLIDAY','OH1001');
 insert into "TASKS" ("ID","NAME","CODE") values (7,'SUPPORT','SUP0001');
 
 insert into "USERS" ("ID","USER","PASSWORD","NICKNAME") values (1,'bernard','jason','Dont call me Bernie');	
+insert into "USERS" ("ID","USER","PASSWORD","NICKNAME","ROLE") values (2,'admin','admin','super user',"admin");	
 
 insert into "TIME_ENTRY" ("USER_ID","USER","WHEN","TASK_ID","TASK","EFFORT") 
 	values (1, "Dont call me Bernie",strftime('%s', 'now') ,1,"TEA","0.20");

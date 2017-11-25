@@ -3,7 +3,8 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.list
+GET     /                           controllers.Application.debug
+#GET     /                           controllers.Application.list
 GET     /javascript.js                controllers.Application.javascript
 
 # Map static resources from the /public folder to the /assets URL path
@@ -12,6 +13,8 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 GET     /list						controllers.Application.list
 
+GET     /admin						controllers.Application.admin
+
 GET		/api/timeentries		controllers.Api.getTimeEntries(week:Option[String])
 
 POST	/api/timeentry				controllers.Api.postTimeEntry
@@ -19,6 +22,7 @@ POST	/api/timeentry				controllers.Api.postTimeEntry
 DELETE	/api/timeentry				controllers.Api.deleteTimeEntry(id:Long)
 
 POST  /login						controllers.Application.login
+POST  /newuser						controllers.Application.newuser
 
 GET   /logout						controllers.Application.logout
 
