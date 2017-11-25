@@ -70,6 +70,36 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
       "user" -> id)
 
   }
+  def getAllTheUsers = {
+    val q = users.sortBy(f => f.user)
+    val allUsers = new ListBuffer[User]
+
+    Await.result(db.run(q.result), Duration.Inf).map { u =>
+      allUsers += u
+    }
+    allUsers
+  }
+
+  def notLoggedIn(implicit request: play.api.mvc.Request[play.api.mvc.AnyContent]) = {
+    logger.info(s"not logged in")
+    Redirect(routes.Application.list()).withNewSession
+  } 
+
+  def getAuth(implicit request: play.api.mvc.Request[play.api.mvc.AnyContent]): Option[User] = {
+    request.session.get("user").map { u =>
+      logger.info(s"session user is ${u}")
+      return cache.get[User](u)
+    }
+    None
+  }
+
+  def admin = Action { implicit request =>
+    getAuth.map { u =>
+      Ok(views.html.admin(loginAdminForm, taskForm, u, getAllTheUsers.toList))
+    }.getOrElse { notLoggedIn }
+
+  }
+
 
   def javascript = Action { implicit request =>
     val user = request.session.get("user")
@@ -88,75 +118,46 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
   def index = Action {
     Redirect(routes.Application.list())
   }
-  
-  def notLoggedIn(implicit request: play.api.mvc.Request[play.api.mvc.AnyContent]) = {
-     logger.info(s"not logged in")
-     //Ok(views.html.list(loginForm, null, null))
-     Redirect(routes.Application.list()).withNewSession
-  }
 
-  def list = Action { implicit request =>
+  def list = Action.async { implicit request =>
 
     val q = tasks.result
-    val list = Await.result(db.run(q), Duration.Inf).map { u =>
-      logger.debug(s"${u.id}, ${u.code},${u.name}")
-      u
-    }
 
     getAuth.map { auth =>
+      Future {
+        val list = Await.result(db.run(q), Duration.Inf).map { u =>
+          logger.debug(s"${u.id}, ${u.code},${u.name}")
+          u
+        }
         Ok(views.html.list(loginForm, auth, list.toList))
-    }.getOrElse { notLoggedIn }
-  }
-
-  def allUsers = {
-    val q = users.sortBy(f => f.user)
-    val allUsers = new ListBuffer[User]
-
-    Await.result(db.run(q.result), Duration.Inf).map { u =>
-      allUsers += u
-    }
-    allUsers
-  }
-
-  def getAuth(implicit request: play.api.mvc.Request[play.api.mvc.AnyContent]): Option[User] = {
-    request.session.get("user").map { u =>
-      logger.info(s"session user is ${u}")
-      return cache.get[User](u)
-    }
-    None
-  }
-
-  def admin = Action { implicit request =>
-    getAuth.map { u =>
-      Ok(views.html.admin(loginAdminForm, taskForm, u, allUsers.toList))
-    }.getOrElse { notLoggedIn }
-
+      }
+    }.getOrElse { Future.successful(notLoggedIn) }
   }
 
   val newuser = Action.async { implicit request =>
-    
+
     loginAdminForm.bindFromRequest.fold(
       formWithErrors => {
         getAuth.map { u =>
-          Future.successful(BadRequest(views.html.admin(formWithErrors, taskForm, u, allUsers.toList)) )
+          Future.successful(BadRequest(views.html.admin(formWithErrors, taskForm, u, getAllTheUsers.toList)))
         }.getOrElse {
-          Future.successful( notLoggedIn )
+          Future.successful(notLoggedIn)
         }
       },
       newuserData => {
 
         def handleDbResponse(res: Try[Int]) = res match {
           case Success(res) => Redirect(routes.Application.admin())
-          case Failure(e) => { 
+          case Failure(e) => {
             logger.error(s"Problem on update " + res)
-            val flasherr = s"Error "+res
+            val flasherr = s"Error " + res
             Redirect(routes.Application.admin).flashing("error" -> flasherr)
           }
           case _ => {
             Redirect(routes.Application.admin())
           }
         }
-        
+
         getAuth.map { u =>
           if (newuserData.id > 0) {
             if (newuserData.password.length > 0) {
@@ -172,27 +173,26 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
           } else {
             db.run((users += newuserData).asTry).map { handleDbResponse(_) }
           }
-        }.getOrElse{ Future.successful(  Redirect(routes.Application.list()).withNewSession ) }
-        
+        }.getOrElse { Future.successful(Redirect(routes.Application.list()).withNewSession) }
+
       })
   }
-  
 
-  val login = Action(parse.form(loginForm)) { implicit request =>
+  val login = Action(parse.form(loginForm)).async { implicit request =>
 
     val loginData = request.body
 
     val q = users.filter { u => u.user === loginData.user && u.password === loginData.password }
 
-    var id: String = ""
-    Await.result(db.run(q.result), Duration.Inf).map { u =>
-      id = java.util.UUID.randomUUID().toString
-      cache.set(id, u)
+    Future{
+      var id: String = ""
+      Await.result(db.run(q.result), Duration.Inf).map { u =>
+        id = java.util.UUID.randomUUID().toString
+        cache.set(id, u)
+      }
+      logger.info(s"login is is ${id}")
+      Redirect(routes.Application.list()).withSession( "user" -> id)
     }
-
-    logger.info(s"login is is ${id}")
-    Redirect(routes.Application.list()).withSession(
-      "user" -> id)
 
   }
 

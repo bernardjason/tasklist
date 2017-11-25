@@ -8,3 +8,4 @@ lite.db
 /.settings
 /RUNNING_PID
 /bin/
+/.cache-main
