@@ -3,8 +3,8 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.debug
-#GET     /                           controllers.Application.list
+#GET     /                           controllers.Application.debug
+GET     /                           controllers.Application.list
 GET     /javascript.js                controllers.Application.javascript
 
 # Map static resources from the /public folder to the /assets URL path

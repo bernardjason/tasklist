@@ -129,7 +129,7 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
         }
         Ok(views.html.list(loginForm, auth, list.toList))
       }
-    }.getOrElse { Future.successful(notLoggedIn) }
+    }.getOrElse { Future.successful( Ok(views.html.list(loginForm, null,null))) }
   }
 
   val newuser = Action.async { implicit request =>
