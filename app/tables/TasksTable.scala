@@ -11,7 +11,7 @@ trait TasksTable {
   import driver.api._
   class ATask(tag: Tag) extends Table[Tasks](tag, "TASKS") {
 
-    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     def name = column[String]("NAME")
     def code = column[String]("CODE")
 

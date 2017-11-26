@@ -8,9 +8,9 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import java.text.SimpleDateFormat
 
-case class Tasks(id: Int, name: String, code: String)
+case class Tasks(id: Long, name: String, code: String)
 
-object Tasks extends ((Int, String, String) => Tasks) {
+object Tasks extends ((Long, String, String) => Tasks) {
 
   implicit object timestampFormat extends Format[Timestamp] {
     val format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
@@ -29,4 +29,5 @@ object Tasks extends ((Int, String, String) => Tasks) {
   
   def apply(name:String,code:String):Tasks = Tasks(0,name,code)
   def unapplyit(t: Tasks): Option[ (String,String)]  = Some(t.name,t.code)
+  def unapplyitadmin(t: Tasks): Option[ (Long,String,String)]  = Some(t.id,t.name,t.code)
 }

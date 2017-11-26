@@ -51,7 +51,8 @@
       <ul class="nav navbar-nav">
 
  		@if( user != null && user.role.getOrElse("") == "admin" ) {
- 		<li><a href="/admin">admin</a></li>
+ 		<li><a href="/useradmin">user admin</a></li>
+ 		<li><a href="/taskadmin">task admin</a></li>
 		}
 
   		<li class="active"><a href="/">Home</a></li>

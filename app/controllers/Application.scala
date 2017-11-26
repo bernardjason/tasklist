@@ -57,6 +57,12 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
       "name" -> text,
       "code" -> text)(Tasks.apply)(Tasks.unapplyit))
 
+  val taskAdminForm = Form(
+    mapping(
+      "id" -> default(longNumber, 0L),
+      "name" -> text,
+      "code" -> text)(Tasks.apply)(Tasks.unapplyitadmin))
+
   def debug = Action {
     println("*****************************************************************************")
     println("*    DEBUG LOGIN                                                            *")
@@ -91,13 +97,11 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
     None
   }
 
-  def admin = Action { implicit request =>
+  def useradmin = Action { implicit request =>
     getAuth.map { u =>
       Ok(views.html.admin(loginAdminForm, taskForm, u, getAllTheUsers.toList))
     }.getOrElse { notLoggedIn }
-
   }
-
 
   def javascript = Action { implicit request =>
     val user = request.session.get("user")
@@ -119,18 +123,75 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
 
   def list = Action.async { implicit request =>
 
-    val q = tasks.result
-
     getAuth.map { auth =>
       Future {
-        val list = Await.result(db.run(q), Duration.Inf).map { u =>
-          Logger.debug(s"${u.id}, ${u.code},${u.name}")
-          u
-        }
+        val list = getAlltheTasks
         Ok(views.html.list(loginForm, auth, list.toList))
       }
     }.getOrElse { Future.successful( Ok(views.html.list(loginForm, null,null))) }
   }
+ 
+  def getAlltheTasks = {
+      val q = tasks.result
+      val list = Await.result(db.run(q), Duration.Inf).map { u =>
+          Logger.debug(s"${u.id}, ${u.code},${u.name}")
+          u
+      }
+      list
+  }
+   def taskadmin = Action { implicit request =>
+    getAuth.map { u =>
+      val list = getAlltheTasks
+      Ok(views.html.taskadmin(loginForm,taskAdminForm, u, list.toList))
+    }.getOrElse { notLoggedIn }
+  }
+  
+  val newtask = Action.async { implicit request =>
+
+    taskAdminForm.bindFromRequest.fold(
+      formWithErrors => {
+        getAuth.map { u =>
+          Future.successful(BadRequest(views.html.taskadmin(loginForm,formWithErrors, u, getAlltheTasks.toList)))
+        }.getOrElse {
+          Future.successful(notLoggedIn)
+        }
+      },
+      newtaskData => {
+
+        def handleDbResponse(res: Try[Int]) = res match {
+          case Success(res) => Redirect(routes.Application.taskadmin())
+          case Failure(e) => {
+            Logger.error(s"Problem on update " + res)
+            val flasherr = s"Error " + res
+            Redirect(routes.Application.taskadmin).flashing("error" -> flasherr)
+          }
+          case _ => {
+            Redirect(routes.Application.taskadmin())
+          }
+        }
+
+        getAuth.map { u =>
+          if (newtaskData.id > 0) {
+            Logger.info("Update "+newtaskData)
+            if (newtaskData.id > 0) {
+              val q = tasks.filter { u => u.id === newtaskData.id }
+              db.run((q.update(newtaskData)).asTry).map { handleDbResponse(_) }
+
+            } else {
+              val q = tasks.filter(u => u.id === newtaskData.id).map(x => (x.name, x.code))
+              val u = (newtaskData.name, newtaskData.code)
+              db.run((q.update(u)).asTry).map { handleDbResponse(_) }
+            }
+
+          } else {
+            Logger.info("Insert "+newtaskData)
+            db.run((tasks += newtaskData).asTry).map { handleDbResponse(_) }
+          }
+        }.getOrElse { Future.successful(Redirect(routes.Application.list()).withNewSession) }
+
+      })
+  }
+  
 
   val newuser = Action.async { implicit request =>
 
@@ -145,14 +206,14 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
       newuserData => {
 
         def handleDbResponse(res: Try[Int]) = res match {
-          case Success(res) => Redirect(routes.Application.admin())
+          case Success(res) => Redirect(routes.Application.useradmin())
           case Failure(e) => {
             Logger.error(s"Problem on update " + res)
             val flasherr = s"Error " + res
-            Redirect(routes.Application.admin).flashing("error" -> flasherr)
+            Redirect(routes.Application.useradmin).flashing("error" -> flasherr)
           }
           case _ => {
-            Redirect(routes.Application.admin())
+            Redirect(routes.Application.useradmin())
           }
         }
 

@@ -13,7 +13,8 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 GET     /list						controllers.Application.list
 
-GET     /admin						controllers.Application.admin
+GET     /useradmin						controllers.Application.useradmin
+GET     /taskadmin						controllers.Application.taskadmin
 
 GET		/api/timeentries		controllers.Api.getTimeEntries(week:Option[String])
 
@@ -23,6 +24,7 @@ DELETE	/api/timeentry				controllers.Api.deleteTimeEntry(id:Long)
 
 POST  /login						controllers.Application.login
 POST  /newuser						controllers.Application.newuser
+POST  /newtask						controllers.Application.newtask
 
 GET   /logout						controllers.Application.logout
 
