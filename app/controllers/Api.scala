@@ -24,8 +24,6 @@ class Api @Inject() (implicit ec: ExecutionContext ,components: ControllerCompon
   extends AbstractController(components)
   with TimeEntryTable with HasDatabaseConfig[JdbcProfile] {
 
-  val logger: Logger = Logger(this.getClass())
-  
   val dbConfig: DatabaseConfig[JdbcProfile] = dbConfigProvider.get[JdbcProfile]
 
   import dbConfig.profile.api._
@@ -34,9 +32,9 @@ class Api @Inject() (implicit ec: ExecutionContext ,components: ControllerCompon
 
   def getTimeEntries(week: Option[String]) = securedAction.async { implicit request =>
 
-    logger.info(s"WEEK IS ${week}")
+    Logger.info(s"WEEK IS ${week}")
     val userid = request.user.id
-    logger.info(s"get time entries ${userid}")
+    Logger.info(s"get time entries ${userid}")
 
     val mytasks = if (week.isEmpty) {
       for {
@@ -46,7 +44,7 @@ class Api @Inject() (implicit ec: ExecutionContext ,components: ControllerCompon
       val start = new Timestamp(week.get.toLong)
       val end = new Timestamp(week.get.toLong + (60 * 60 * 24 * 7 * 1000))
 
-      logger.info(s"Start ${start} end ${end}")
+      Logger.info(s"Start ${start} end ${end}")
 
       for {
         timeentry <- timeentries.withFilter(w => w.when >= start && w.when < end).
@@ -73,7 +71,7 @@ class Api @Inject() (implicit ec: ExecutionContext ,components: ControllerCompon
       res match {
         case Success(res) => Ok(Json.toJson(t))
         case Failure(e) => {
-          logger.error(s"Problem on insert, ${e.getMessage}")
+          Logger.error(s"Problem on insert, ${e.getMessage}")
           InternalServerError(s"Problem on insert, ${e.getMessage}")
         }
       })

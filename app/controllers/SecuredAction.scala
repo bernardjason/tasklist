@@ -22,27 +22,13 @@ class SecuredAction @Inject()(cache:SyncCacheApi,playBodyParsers: PlayBodyParser
 
     
   override def parser: BodyParser[AnyContent] = playBodyParsers.anyContent
-// Members declared in play.api.mvc.ActionFunction protected 
-  /* 
-  var cache:SyncCacheApi =null
-   var playBodyParsers: PlayBodyParsers = null
-  @Inject()
-  def setCache (cache:SyncCacheApi ) = {
-    this.cache = cache 
-  }
-  @Inject 
-  def setBodyParser(playBodyParsers: PlayBodyParsers) {
-    this.playBodyParsers = playBodyParsers
-  }
-  */
+
   def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[Result]) = {
 
     request.session.get("user").map { u =>
 
       import play.api.Play.current
       
-    
-      //val user = cache.getAs[User](u)
       val user = cache.get(u).asInstanceOf[Option[User]]
 
       if (user.isEmpty || user.get.id < 0) {

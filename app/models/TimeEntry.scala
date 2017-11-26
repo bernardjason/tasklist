@@ -14,9 +14,9 @@ import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 import java.util.Date
 
-case class TimeEntry(id: Long, user_id: Int=0, user: String="", when: Timestamp = new Timestamp(0L), task_id: Int, task: String, effort: Double)
+case class TimeEntry(id: Long, user_id: Long=0, user: String="", when: Timestamp = new Timestamp(0L), task_id: Int, task: String, effort: Double)
 
-object TimeEntry extends ((Long, Int, String, Timestamp, Int, String, Double) => TimeEntry) {
+object TimeEntry extends ((Long, Long, String, Timestamp, Int, String, Double) => TimeEntry) {
 
   implicit object timestampFormat extends Format[Timestamp] {
     val timeformat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")

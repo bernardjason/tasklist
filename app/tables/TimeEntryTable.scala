@@ -12,7 +12,7 @@ trait TimeEntryTable {
   class TimeEntries(tag: Tag) extends Table[TimeEntry](tag, "TIME_ENTRY") {
 
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
-    def user_id = column[Int]("USER_ID")
+    def user_id = column[Long]("USER_ID")
     def user = column[String]("USER")
     def when = column[Timestamp]("WHEN")
     def task_id = column[Int]("TASK_ID")

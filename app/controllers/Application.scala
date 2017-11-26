@@ -33,8 +33,6 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
 
   override val dbConfig: DatabaseConfig[JdbcProfile] = dbConfigProvider.get[JdbcProfile]
 
-  val logger: Logger = Logger(this.getClass())
-
   import dbConfig.profile.api._
 
   val users = TableQuery[Users]
@@ -48,7 +46,7 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
 
   val loginAdminForm = Form(
     mapping(
-      "id" -> default(number, 0),
+      "id" -> default(longNumber, 0L),
       "user" -> text.verifying("need username for add or update", { !_.isEmpty }),
       "password" -> text,
       "nickname" -> text.verifying("need nickname for add or update", { !_.isEmpty }),
@@ -81,13 +79,13 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
   }
 
   def notLoggedIn(implicit request: play.api.mvc.Request[play.api.mvc.AnyContent]) = {
-    logger.info(s"not logged in")
+    Logger.info(s"not logged in")
     Redirect(routes.Application.list()).withNewSession
   } 
 
   def getAuth(implicit request: play.api.mvc.Request[play.api.mvc.AnyContent]): Option[User] = {
     request.session.get("user").map { u =>
-      logger.info(s"session user is ${u}")
+      Logger.info(s"session user is ${u}")
       return cache.get[User](u)
     }
     None
@@ -126,7 +124,7 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
     getAuth.map { auth =>
       Future {
         val list = Await.result(db.run(q), Duration.Inf).map { u =>
-          logger.debug(s"${u.id}, ${u.code},${u.name}")
+          Logger.debug(s"${u.id}, ${u.code},${u.name}")
           u
         }
         Ok(views.html.list(loginForm, auth, list.toList))
@@ -149,7 +147,7 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
         def handleDbResponse(res: Try[Int]) = res match {
           case Success(res) => Redirect(routes.Application.admin())
           case Failure(e) => {
-            logger.error(s"Problem on update " + res)
+            Logger.error(s"Problem on update " + res)
             val flasherr = s"Error " + res
             Redirect(routes.Application.admin).flashing("error" -> flasherr)
           }
@@ -160,6 +158,7 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
 
         getAuth.map { u =>
           if (newuserData.id > 0) {
+            Logger.info("Update "+newuserData.id+" "+newuserData.user+" "+newuserData.nickname+" "+newuserData.role)
             if (newuserData.password.length > 0) {
               val q = users.filter { u => u.id === newuserData.id }
               db.run((q.update(newuserData)).asTry).map { handleDbResponse(_) }
@@ -171,6 +170,7 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
             }
 
           } else {
+            Logger.info("Insert "+newuserData)
             db.run((users += newuserData).asTry).map { handleDbResponse(_) }
           }
         }.getOrElse { Future.successful(Redirect(routes.Application.list()).withNewSession) }
@@ -190,7 +190,7 @@ class Application @Inject() (implicit ec: ExecutionContext, components: Controll
         id = java.util.UUID.randomUUID().toString
         cache.set(id, u)
       }
-      logger.info(s"login is is ${id}")
+      Logger.info(s"login is is ${id}")
       Redirect(routes.Application.list()).withSession( "user" -> id)
     }
 

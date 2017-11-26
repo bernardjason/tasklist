@@ -11,7 +11,7 @@ trait UserTable {
   import driver.api._
   class Users(tag: Tag) extends Table[User](tag, "USERS") {
 
-    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     def user = column[String]("USER")
     def password = column[String]("PASSWORD")
     def nickname = column[String]("NICKNAME")
